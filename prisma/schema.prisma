@@ -1,0 +1,128 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "binary"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum WorkProfile {
+  EMBROIDERY
+  SERVICE
+  TECHNICAL
+  CREATIVE
+  CUSTOM
+}
+
+enum JobStatus {
+  PENDING
+  IN_PROGRESS
+  READY
+  DELIVERED
+  CANCELLED
+}
+
+enum EntryType {
+  INCOME
+  EXPENSE
+}
+
+enum GoalType {
+  INCOME
+  ORDER
+  COMPLIANCE
+  DISCIPLINE
+  CALM
+}
+
+model User {
+  id                String           @id @default(cuid())
+  name              String
+  workingHoursStart String
+  workingHoursEnd   String
+  workProfile       WorkProfile      @default(EMBROIDERY)
+  customWorkLabel   String?
+  setupComplete     Boolean          @default(false)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  jobs              Job[]
+  dailyLogs         DailyLog[]
+  financialEntries  FinancialEntry[]
+  goals             Goal[]
+}
+
+model Job {
+  id                 String     @id @default(cuid())
+  userId             String
+  clientName         String
+  type               String
+  description        String
+  quantity           Int
+  price              Decimal    @db.Decimal(10, 2)
+  cost               Decimal    @db.Decimal(10, 2)
+  timePerUnitMinutes Int
+  totalTimeMinutes   Int
+  actualWorkedMinutes Int       @default(0)
+  progressPercent    Int        @default(0)
+  deadline           DateTime
+  status             JobStatus  @default(PENDING)
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+  user               User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status, deadline])
+}
+
+model DailyLog {
+  id                 String    @id @default(cuid())
+  userId             String
+  date               DateTime
+  totalWorkedMinutes Int
+  notes              String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([userId, date])
+}
+
+model FinancialEntry {
+  id          String    @id @default(cuid())
+  userId      String
+  type        EntryType
+  title       String
+  amount      Decimal   @db.Decimal(10, 2)
+  category    String
+  date        DateTime
+  notes       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type, date])
+}
+
+model Goal {
+  id           String    @id @default(cuid())
+  userId       String
+  title        String
+  type         GoalType
+  targetValue  Int
+  currentValue Int       @default(0)
+  unit         String
+  periodLabel  String
+  active       Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, active])
+}
