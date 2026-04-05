@@ -20,13 +20,19 @@ export type GoalTypeValue = (typeof goalTypeOptions)[number]["value"];
 
 export const jobStatusOptions = [
   { value: "PENDING", label: "Pendiente" },
-  { value: "IN_PROGRESS", label: "En marcha" },
-  { value: "READY", label: "Listo" },
-  { value: "DELIVERED", label: "Entregado" },
+  { value: "STARTING", label: "Comenzando" },
+  { value: "ADVANCING", label: "Avanzando" },
+  { value: "COMPLETED", label: "Terminado" },
   { value: "CANCELLED", label: "Cancelado" },
 ] as const;
 
 export type JobStatusValue = (typeof jobStatusOptions)[number]["value"];
+
+export function getJobStatusLabel(status: JobStatusValue) {
+  return (
+    jobStatusOptions.find((option) => option.value === status)?.label ?? "Pendiente"
+  );
+}
 
 export const entryTypeOptions = [
   { value: "INCOME", label: "Ingreso" },

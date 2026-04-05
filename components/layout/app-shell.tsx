@@ -7,12 +7,12 @@ import { PirateMascot } from "@/components/pirate/pirate-mascot";
 import { cn } from "@/lib/utils";
 
 const links = [
-  { href: "/", label: "Hoy" },
-  { href: "/jobs", label: "Promesas" },
-  { href: "/jobs/new", label: "Nuevo trabajo" },
-  { href: "/goals", label: "Objetivos" },
-  { href: "/settings", label: "Ajustes" },
-];
+  { href: "/", label: "Hoy", match: "exact" },
+  { href: "/jobs", label: "Promesas", match: "exact" },
+  { href: "/jobs/new", label: "Nuevo trabajo", match: "prefix" },
+  { href: "/goals", label: "Objetivos", match: "prefix" },
+  { href: "/settings", label: "Ajustes", match: "prefix" },
+] as const;
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -33,7 +33,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <nav className="hidden flex-wrap gap-2 md:flex">
             {links.map((link) => {
               const active =
-                link.href === "/" ? pathname === link.href : pathname.startsWith(link.href);
+                link.match === "exact"
+                  ? pathname === link.href
+                  : pathname === link.href || pathname.startsWith(`${link.href}/`);
 
               return (
                 <Link

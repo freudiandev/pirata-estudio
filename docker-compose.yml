@@ -1,5 +1,12 @@
 version: "3.9"
 
+x-security-hardening: &security-hardening
+  init: true
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+
 services:
   db:
     image: docker.io/library/postgres:16-alpine
@@ -19,13 +26,12 @@ services:
       interval: 10s
       timeout: 5s
       retries: 8
+    stop_grace_period: 20s
     ports:
-      - target: 5432
-        published: 5434
-        protocol: tcp
-        mode: host
+      - "127.0.0.1:5434:5432"
 
   migrate:
+    <<: *security-hardening
     build:
       context: .
       dockerfile: docker/web/Dockerfile
@@ -44,8 +50,11 @@ services:
       TZ: America/Guayaquil
     entrypoint: ["./docker/migrate/entrypoint.sh"]
     restart: "no"
+    tmpfs:
+      - /tmp:size=64m
 
   web:
+    <<: *security-hardening
     build:
       context: .
       dockerfile: docker/web/Dockerfile
@@ -67,6 +76,9 @@ services:
       PORT: 3000
       TZ: America/Guayaquil
     entrypoint: ["./docker/web/entrypoint.sh"]
+    read_only: true
+    tmpfs:
+      - /tmp:size=128m
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000 >/dev/null || exit 1"]
       interval: 15s
@@ -74,13 +86,12 @@ services:
       retries: 8
       start_period: 25s
     ports:
-      - target: 3000
-        published: 3000
-        protocol: tcp
-        mode: host
+      - "127.0.0.1:3000:3000"
 
 volumes:
   pirate_studio_postgres_data:
+  pirate_studio_node_modules:
+  pirate_studio_next_cache:
 
 networks:
   pirate-studio-network:

@@ -4,7 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "dev:docker": "docker compose up --build",
+    "dev:docker": "docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build db migrate web-dev",
+    "docker:up": "docker compose up --build -d db migrate web",
+    "docker:down": "docker compose down",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",

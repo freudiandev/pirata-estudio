@@ -23,9 +23,9 @@ enum WorkProfile {
 
 enum JobStatus {
   PENDING
-  IN_PROGRESS
-  READY
-  DELIVERED
+  STARTING
+  ADVANCING
+  COMPLETED
   CANCELLED
 }
 

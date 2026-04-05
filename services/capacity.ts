@@ -62,7 +62,7 @@ export type NewJobAssessment = {
 };
 
 export function isActiveJob(status: JobStatus | string) {
-  return status === "PENDING" || status === "IN_PROGRESS" || status === "READY";
+  return status === "PENDING" || status === "STARTING" || status === "ADVANCING";
 }
 
 export function getRemainingMinutes(job: CapacityJobInput) {

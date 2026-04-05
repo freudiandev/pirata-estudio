@@ -39,7 +39,7 @@ export async function getDashboardData() {
     .filter((entry) => entry.type === EntryType.EXPENSE)
     .reduce((sum, entry) => sum + Number(entry.amount), 0);
   const balance = income - expenses;
-  const completedJobs = jobs.filter((job) => job.status === JobStatus.DELIVERED);
+  const completedJobs = jobs.filter((job) => job.status === JobStatus.COMPLETED);
   const underestimatedCount = completedJobs.filter((job) => {
     return job.actualWorkedMinutes > job.totalTimeMinutes * 1.15;
   }).length;

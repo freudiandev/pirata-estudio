@@ -1,0 +1,44 @@
+version: "3.9"
+
+services:
+  web-dev:
+    build:
+      context: .
+      dockerfile: docker/web/Dockerfile
+      target: deps
+    container_name: pirate-studio-web-dev
+    restart: unless-stopped
+    init: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL_DOCKER}
+      NODE_ENV: development
+      PORT: 3000
+      HOSTNAME: 0.0.0.0
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING: "true"
+      TZ: America/Guayaquil
+    entrypoint: ["./docker/web/entrypoint-dev.sh"]
+    working_dir: /app
+    volumes:
+      - .:/app
+      - pirate_studio_node_modules:/app/node_modules
+      - pirate_studio_next_cache:/app/.next
+    ports:
+      - "127.0.0.1:3001:3000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000 >/dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 30s

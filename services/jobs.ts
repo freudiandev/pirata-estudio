@@ -46,7 +46,7 @@ export async function listPendingJobs() {
     where: {
       userId: user.id,
       status: {
-        in: [JobStatus.PENDING, JobStatus.IN_PROGRESS, JobStatus.READY],
+        in: [JobStatus.PENDING, JobStatus.STARTING, JobStatus.ADVANCING],
       },
     },
     orderBy: [{ deadline: "asc" }, { createdAt: "asc" }],
@@ -132,8 +132,8 @@ export async function updateJob(jobId: string, rawData: unknown) {
   const user = await getCurrentUser();
   const workedMinutesToday = parsed.data.workedMinutesToday ?? 0;
   const status =
-    parsed.data.status === JobStatus.DELIVERED || parsed.data.progressPercent === 100
-      ? JobStatus.DELIVERED
+    parsed.data.status === JobStatus.COMPLETED || parsed.data.progressPercent === 100
+      ? JobStatus.COMPLETED
       : parsed.data.status;
   const existing = await prisma.job.findFirst({
     where: { id: jobId, userId: user.id },
@@ -146,7 +146,7 @@ export async function updateJob(jobId: string, rawData: unknown) {
   const updated = await prisma.job.update({
     where: { id: existing.id },
     data: {
-      progressPercent: status === JobStatus.DELIVERED ? 100 : parsed.data.progressPercent,
+      progressPercent: status === JobStatus.COMPLETED ? 100 : parsed.data.progressPercent,
       status,
       actualWorkedMinutes: {
         increment: workedMinutesToday,
@@ -179,6 +179,21 @@ export async function updateJob(jobId: string, rawData: unknown) {
   }
 
   return updated;
+}
+
+export async function deleteJob(jobId: string) {
+  const user = await getCurrentUser();
+  const existing = await prisma.job.findFirst({
+    where: { id: jobId, userId: user.id },
+  });
+
+  if (!existing) {
+    throw new JobValidationError("Ese trabajo ya no existe o no te pertenece.");
+  }
+
+  await prisma.job.delete({
+    where: { id: existing.id },
+  });
 }
 
 export async function getCurrentCapacity() {

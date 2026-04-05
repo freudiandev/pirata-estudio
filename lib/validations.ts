@@ -44,7 +44,12 @@ export const dailyLogSchema = z.object({
 export const jobCreateSchema = z
   .object({
     clientName: z.string().trim().min(2, "Escribe el nombre del cliente."),
-    type: z.string().trim().min(2, "Cuéntame qué tipo de trabajo es."),
+    type: z
+      .string()
+      .regex(
+        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/,
+        "Pon la fecha y la hora en que entró el pedido.",
+      ),
     description: z.string().trim().min(8, "Descríbelo con un poco más de detalle."),
     quantity: z.preprocess(
       (value) => Number(value),

@@ -1,7 +1,9 @@
 import { JobStatus } from "@prisma/client";
 import { redirect } from "next/navigation";
+import { JobDeleteButton } from "@/components/forms/job-delete-button";
 import { JobProgressForm } from "@/components/forms/job-progress-form";
 import { Card } from "@/components/ui/card";
+import { getJobStatusLabel } from "@/lib/constants";
 import { getWorkProfileCopy } from "@/lib/copy";
 import { formatCurrency, formatMinutes, formatShortDate } from "@/lib/formatters";
 import { getDashboardData } from "@/services/dashboard";
@@ -18,8 +20,8 @@ export default async function JobsPage() {
   const copy = getWorkProfileCopy(data.user.workProfile, data.user.customWorkLabel);
   const activeStatuses: JobStatus[] = [
     JobStatus.PENDING,
-    JobStatus.IN_PROGRESS,
-    JobStatus.READY,
+    JobStatus.STARTING,
+    JobStatus.ADVANCING,
   ];
   const pendingJobs = data.jobs.filter((job) => activeStatuses.includes(job.status));
   const archivedJobs = data.jobs.filter(
@@ -48,7 +50,7 @@ export default async function JobsPage() {
       <div className="space-y-5">
         {pendingJobs.map((job) => (
           <Card key={job.id} className="space-y-5">
-            <div className="grid gap-4 md:grid-cols-[1.2fr_0.8fr]">
+            <div className="grid gap-4 md:grid-cols-[1.1fr_0.7fr_auto]">
               <div className="space-y-2">
                 <p className="text-sm font-semibold uppercase tracking-[0.18em] text-sky-700">
                   {job.clientName}
@@ -60,6 +62,7 @@ export default async function JobsPage() {
                   <span>Cantidad: {job.quantity}</span>
                   <span>Tiempo total: {formatMinutes(job.totalTimeMinutes)}</span>
                   <span>Entrega: {formatShortDate(job.deadline)}</span>
+                  <span>Estado: {getJobStatusLabel(job.status)}</span>
                 </div>
               </div>
               <div className="rounded-[1.5rem] bg-[#f8fbff] p-4">
@@ -71,6 +74,7 @@ export default async function JobsPage() {
                   Costo estimado: {formatCurrency(Number(job.cost))}
                 </p>
               </div>
+              <JobDeleteButton jobId={job.id} />
             </div>
             <JobProgressForm
               jobId={job.id}
@@ -92,6 +96,9 @@ export default async function JobsPage() {
               >
                 <p className="font-bold">{job.clientName}</p>
                 <p className="text-sm">{job.description}</p>
+                <p className="mt-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                  {getJobStatusLabel(job.status)}
+                </p>
               </div>
             ))}
           </div>

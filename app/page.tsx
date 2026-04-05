@@ -39,10 +39,10 @@ export default async function HomePage() {
             {copy.shortLabel}
           </p>
           <h1 className="max-w-3xl text-5xl font-black tracking-tight text-slate-900">
-            {copy.todayPrompt}
+            ¡Yo soy Pirata Studio y te voy a ayudar a administrar!
           </h1>
           <p className="max-w-2xl text-lg leading-8 text-slate-600">
-            Mira primero lo que ya prometiste, registra lo de hoy y después decide si algo nuevo cabe de verdad.
+            ¡Registra tus ventas, tus gastos, y tus pedidos de la semana para que encuentres tu equilibrio!
           </p>
           <div className="flex flex-wrap gap-3">
             <StatusBadge tone={data.capacity.mood}>{statusLabel}</StatusBadge>

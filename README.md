@@ -10,33 +10,89 @@ Pirate Studio es una app web full stack pensada para oficios por encargo. Su cen
 - Prisma ORM
 - PostgreSQL
 - Framer Motion
-- Docker + docker compose
+- Docker Compose con servicios separados
 
-## Levantar con Docker
+## Arquitectura Docker
 
-1. Usa el `.env` incluido o copia `.env.example` si quieres cambiar credenciales.
-2. Ejecuta:
+La orquestación quedó separada por responsabilidad:
+
+- `db`: PostgreSQL persistente
+- `migrate`: aplica migraciones y seed
+- `web`: app Next.js en modo producción
+- `web-dev`: entorno de desarrollo con hot reload y código sincronizado por bind mount
+
+Archivos principales:
+
+- [docker-compose.yml](/home/freudiandev/Documentos/dev/Estudio%20Pirata/docker-compose.yml)
+- [docker-compose.dev.yml](/home/freudiandev/Documentos/dev/Estudio%20Pirata/docker-compose.dev.yml)
+- [docker/web/Dockerfile](/home/freudiandev/Documentos/dev/Estudio%20Pirata/docker/web/Dockerfile)
+
+## Seguridad local
+
+Se aplicaron medidas simples y útiles para local:
+
+- `no-new-privileges`
+- `cap_drop: ALL` en servicios de app
+- publicación solo en `127.0.0.1`
+- healthchecks
+- `read_only` y `tmpfs` en `web`
+- red dedicada para los servicios
+
+## Persistencia de datos
+
+Los datos no dependen de la imagen.
+
+Volúmenes persistentes:
+
+- `pirate_studio_postgres_data`: datos reales de PostgreSQL
+- `pirate_studio_node_modules`: dependencias del entorno dev en contenedor
+- `pirate_studio_next_cache`: caché `.next` para desarrollo
+
+Mientras uses `docker compose down` o `podman-compose down`, los datos siguen ahí.
+
+Solo se borran si haces algo como:
 
 ```bash
-docker compose up --build -d
+docker compose down -v
 ```
 
-3. Abre `http://localhost:3000`
+o eliminas manualmente el volumen.
 
-Si en tu máquina `docker compose` usa Podman, puedes usar esto:
+## Producción local con Docker
+
+```bash
+docker compose up --build -d db migrate web
+```
+
+Abre `http://localhost:3000`
+
+## Desarrollo sincronizado con Docker
+
+Esto monta tu proyecto dentro del contenedor y deja hot reload:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build db migrate web-dev
+```
+
+También puedes usar el script:
+
+```bash
+npm run dev:docker
+```
+
+Ese entorno de desarrollo queda disponible en `http://localhost:3001`.
+
+## Si tu entorno usa Podman
 
 ```bash
 podman-compose up --build -d
 ```
 
-La persistencia de PostgreSQL queda en el volumen `pirate_studio_postgres_data`.
-La arquitectura Docker quedó separada por responsabilidad:
+Para desarrollo:
 
-- `db`: PostgreSQL persistente
-- `migrate`: aplica migraciones y seed
-- `web`: sirve la aplicación Next.js
-
-Todos comparten una red dedicada `pirate-studio-network`.
+```bash
+podman-compose -f docker-compose.yml -f docker-compose.dev.yml up --build db migrate web-dev
+```
 
 ## Levantar sin Docker
 
